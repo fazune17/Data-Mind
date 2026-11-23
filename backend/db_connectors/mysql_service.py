@@ -1,5 +1,8 @@
 
-import mysql.connector
+try:
+    import mysql.connector
+except ImportError:
+    mysql = None
 import pandas as pd
 
 from decimal import Decimal

@@ -9,7 +9,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from mysql.connector import Error as MySQLError
+try:
+    from mysql.connector import Error as MySQLError
+except ImportError:
+    class MySQLError(Exception):
+        pass
 
 from .models import ExternalMySQLConnection
 
