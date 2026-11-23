@@ -1,0 +1,36 @@
+# Python & Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+*.py[cod]
+*$py.class
+__pycache__/
+
+# Environment Variables & Secrets
+.env
+*.env
+.env.*
+!.env.example
+
+# Database files
+*.sqlite3
+*.db
+
+# Media & Uploads (leave placeholder)
+backend/media/datasets/*
+!backend/media/datasets/DataMind_Stage2_Edge_Cases.xlsx
+
+# Static collected
+backend/staticfiles/
+
+# Logs & System
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.gemini/
+
+# Vercel output
+.vercel/

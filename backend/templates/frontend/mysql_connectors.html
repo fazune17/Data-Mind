@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataMind | MySQL Connectors</title>
+    <link rel="stylesheet" href="{% static 'frontend/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'frontend/css/mysql_connectors.css' %}">
+</head>
+<body>
+<div class="app-container">
+    <aside class="sidebar" id="sidebar">
+        <div class="brand"><div class="brand-icon">D</div><span>DataMind</span></div>
+        <div class="workspace-label">WORKSPACE</div>
+        <nav class="navigation">
+            <a href="/dashboard/" class="nav-item"><span>▦</span> Dashboard</a>
+            <a href="/dashboard/datasets/" class="nav-item"><span>▤</span> Datasets</a>
+            <a href="/dashboard/mysql-connectors/" class="nav-item active"><span>⌘</span> MySQL Connectors</a>
+            <div class="workspace-label">ANALYTICS</div>
+            <a href="#" class="nav-item" data-coming-soon="Data Preview"><span>◫</span> Data Preview</a>
+            <a href="#" class="nav-item" data-coming-soon="EDA Workspace"><span>▥</span> EDA Workspace</a>
+            <a href="#" class="nav-item" data-coming-soon="AI Data Analyst"><span>✧</span> AI Data Analyst</a>
+            <div class="workspace-label">MANAGEMENT</div>
+            <a href="#" class="nav-item" data-coming-soon="Reports"><span>▧</span> Reports</a>
+            <a href="#" class="nav-item" data-coming-soon="Settings"><span>⚙</span> Settings</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="user-avatar">{{ request.user.username|first|upper }}</div>
+            <div class="user-info"><strong>{{ request.user.username }}</strong><small>Data Analyst</small></div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <button class="menu-button" id="menuButton" aria-label="Open navigation">☰</button>
+            <div class="breadcrumb">Workspace / <strong>MySQL Connectors</strong></div>
+            <div class="topbar-right"><span class="status-indicator"></span> System Online</div>
+        </header>
+
+        <section class="mysql-content">
+            <div class="mysql-heading">
+                <div>
+                    <p class="eyebrow">DATA SOURCES</p>
+                    <h1>MySQL Connectors</h1>
+                    <p class="subtitle">Connect external MySQL databases and explore their tables.</p>
+                </div>
+                <button class="secondary-button" id="refreshConnections">↻ Refresh</button>
+            </div>
+
+            <div class="mysql-layout">
+                <section class="mysql-panel connect-panel">
+                    <div class="panel-heading">
+                        <div><h2>Connect a database</h2><p>Credentials are used to establish the connection and the password is stored encrypted.</p></div>
+                        <span class="mysql-logo">SQL</span>
+                    </div>
+                    <form id="connectionForm" autocomplete="off">
+                        {% csrf_token %}
+                        <div class="form-grid">
+                            <label class="field full-field">Connection name<input name="name" id="connectionName" maxlength="100" placeholder="e.g. Sales Production DB" required></label>
+                            <label class="field">Host<input name="host" id="host" maxlength="255" placeholder="localhost or database host" required></label>
+                            <label class="field">Port<input name="port" id="port" type="number" min="1" max="65535" value="3306" required></label>
+                            <label class="field">Database name<input name="database_name" id="databaseName" maxlength="100" placeholder="database_name" required></label>
+                            <label class="field">Username<input name="username" id="username" maxlength="100" placeholder="MySQL username" required></label>
+                            <label class="field full-field">Password<input name="password" id="password" type="password" placeholder="MySQL password" required></label>
+                        </div>
+                        <div class="form-actions">
+                            <p class="form-hint">The connection is checked when you submit this form.</p>
+                            <button class="primary-button" type="submit" id="connectButton">Connect &amp; Save</button>
+                        </div>
+                        <div class="notice" id="connectionMessage" role="status" aria-live="polite"></div>
+                    </form>
+                </section>
+
+                <section class="mysql-panel saved-panel">
+                    <div class="panel-heading">
+                        <div><h2>Saved connections</h2><p>Select a connection to load its tables.</p></div>
+                        <span class="count-chip" id="connectionCount">0</span>
+                    </div>
+                    <div class="connection-list" id="connectionList">
+                        <div class="empty-state">Loading saved connections...</div>
+                    </div>
+                </section>
+            </div>
+
+            <section class="mysql-panel explorer-panel">
+                <div class="panel-heading explorer-heading">
+                    <div><p class="eyebrow">DATABASE EXPLORER</p><h2 id="explorerTitle">Choose a connection</h2><p id="explorerSubtitle">Your database tables will appear here after you select a saved connection.</p></div>
+                    <span class="connection-status" id="selectedConnectionStatus">Not connected</span>
+                </div>
+                <div class="explorer-body">
+                    <div class="tables-column">
+                        <div class="subheading"><h3>Tables</h3><span id="tableCount">0 tables</span></div>
+                        <div class="table-list" id="tableList"><div class="empty-state">No tables loaded.</div></div>
+                    </div>
+                    <div class="details-column">
+                        <div class="subheading detail-subheading"><h3 id="selectedTableTitle">Table details</h3><div class="detail-actions">
+                            <button class="small-button" id="previewButton" disabled>Preview</button>
+                            <button class="small-button" id="edaButton" disabled>Run EDA</button>
+                        </div></div>
+                        <div class="table-preview" id="tablePreview"><div class="empty-state">Select a table to preview its records.</div></div>
+                        <div class="ai-question-box">
+                            <label for="aiQuestion">Ask AI about this table</label>
+                            <div class="ai-input-row"><input id="aiQuestion" maxlength="1000" placeholder="e.g. Which columns have missing values?" disabled><button class="primary-button" id="askAiButton" disabled>Ask AI</button></div>
+                            <div class="result-block" id="analysisResult" hidden></div>
+                        </div>
+                        <div class="result-block eda-result" id="edaResult" hidden></div>
+                    </div>
+                </div>
+            </section>
+            <div class="page-message" id="pageMessage" role="status" aria-live="polite"></div>
+        </section>
+    </main>
+</div>
+<script src="{% static 'frontend/js/dashboard.js' %}"></script>
+<script src="{% static 'frontend/js/mysql_connectors.js' %}"></script>
+</body>
+</html>

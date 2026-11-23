@@ -1,0 +1,625 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataMind - AI Data Analysis</title>
+
+  <!-- Google Font: Inter / Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Core DataMind CSS -->
+  <link rel="stylesheet" href="{% static 'frontend/css/datamind.css' %}">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Marked.js Markdown Renderer CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body data-initial-section="{{ active_section|default:'home' }}">
+  {% csrf_token %}
+
+  <div class="app-wrapper">
+
+    <!-- TOP HEADER -->
+    <header class="top-header">
+      <a href="/dashboard/" class="brand-container" onclick="navigateTo('home'); return false;">
+        <div class="brand-icon-bars">
+          <div class="brand-bar bar-1"></div>
+          <div class="brand-bar bar-2"></div>
+          <div class="brand-bar bar-3"></div>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">DataMind</span>
+          <span class="brand-tagline">AI Data Analysis</span>
+        </div>
+      </a>
+
+      <div class="header-right">
+        <button class="user-profile-btn" id="userProfileBtn" title="Account settings">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+          <div class="user-dropdown-menu" id="userDropdownMenu">
+            <div style="padding: 8px 16px; font-size: 12px; color: #64748b;">
+              Signed in as<br><strong style="color: #0f172a; font-size: 13px;">{{ user.username|default:"fazun" }}</strong>
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <a href="/dashboard/" class="user-dropdown-item" onclick="navigateTo('home'); return false;">Dashboard</a>
+            <a href="/dashboard/datasets/" class="user-dropdown-item" onclick="navigateTo('datasets'); return false;">Datasets</a>
+            <a href="/admin/" class="user-dropdown-item">Admin Panel</a>
+            <div class="user-dropdown-divider"></div>
+            <a href="/admin/logout/" class="user-dropdown-item" style="color: #ef4444;">Log out</a>
+          </div>
+        </button>
+      </div>
+    </header>
+
+    <div class="app-body">
+
+      <!-- FIXED LEFT SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+          <!-- 1. Home -->
+          <a href="/dashboard/" class="nav-link {% if active_section == 'home' %}active{% endif %}" data-section="home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            <span>Home</span>
+          </a>
+
+          <!-- 2. Datasets -->
+          <a href="/dashboard/datasets/" class="nav-link {% if active_section == 'datasets' %}active{% endif %}" data-section="datasets">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+            <span>Datasets</span>
+          </a>
+
+          <!-- 3. Ask with AI -->
+          <a href="/dashboard/ask/" class="nav-link {% if active_section == 'ask' %}active{% endif %}" data-section="ask">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span>Ask with AI</span>
+          </a>
+
+          <!-- 4. SQL Query -->
+          <a href="/dashboard/sql/" class="nav-link {% if active_section == 'sql' %}active{% endif %}" data-section="sql">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="4 17 10 11 4 5"/>
+              <line x1="12" y1="19" x2="20" y2="19"/>
+            </svg>
+            <span>SQL Query</span>
+          </a>
+
+          <!-- 5. Insights -->
+          <a href="/dashboard/insights/" class="nav-link {% if active_section == 'insights' %}active{% endif %}" data-section="insights">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            <span>Insights</span>
+          </a>
+
+          <!-- 6. History -->
+          <a href="/dashboard/history/" class="nav-link {% if active_section == 'history' %}active{% endif %}" data-section="history">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 14 14"/>
+            </svg>
+            <span>History</span>
+          </a>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT VIEWPORT -->
+      <main class="main-viewport">
+
+        <!-- ================================================================= -->
+        <!-- VIEW A: HOME DASHBOARD (FIGURE 5.6) -->
+        <!-- ================================================================= -->
+        <section id="view-home" class="page-view {% if active_section == 'home' %}active{% endif %}">
+          <div class="page-header">
+            <h1 class="page-title">Welcome to DataMind</h1>
+            <p class="page-subtitle">Your AI-powered data analysis assistant</p>
+          </div>
+
+          <!-- Four Feature Cards -->
+          <div class="feature-cards-grid">
+            <!-- 1. Upload Dataset -->
+            <a href="/dashboard/upload/" class="feature-card" data-nav="upload">
+              <div class="feature-icon-badge badge-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              </div>
+              <h2 class="feature-title">Upload Dataset</h2>
+              <p class="feature-desc">Upload CSV or Excel files for analysis</p>
+            </a>
+
+            <!-- 2. Ask with AI -->
+            <a href="/dashboard/ask/" class="feature-card" data-nav="ask">
+              <div class="feature-icon-badge badge-purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                  <rect x="4" y="8" width="16" height="12" rx="4"/>
+                  <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
+                  <circle cx="15" cy="13" r="1.5" fill="currentColor"/>
+                  <line x1="9" y1="17" x2="15" y2="17"/>
+                </svg>
+              </div>
+              <h2 class="feature-title">Ask with AI</h2>
+              <p class="feature-desc">Ask questions about your data in natural language</p>
+            </a>
+
+            <!-- 3. SQL Query -->
+            <a href="/dashboard/sql/" class="feature-card" data-nav="sql">
+              <div class="feature-icon-badge badge-green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="4 17 10 11 4 5"/>
+                  <line x1="12" y1="19" x2="20" y2="19"/>
+                </svg>
+              </div>
+              <h2 class="feature-title">SQL Query</h2>
+              <p class="feature-desc">Convert natural language to SQL and run queries</p>
+            </a>
+
+            <!-- 4. Get Insights -->
+            <a href="/dashboard/insights/" class="feature-card" data-nav="insights">
+              <div class="feature-icon-badge badge-orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10"/>
+                  <line x1="12" y1="20" x2="12" y2="4"/>
+                  <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+              </div>
+              <h2 class="feature-title">Get Insights</h2>
+              <p class="feature-desc">Automatic analysis, visualizations and key insights</p>
+            </a>
+          </div>
+
+          <!-- Recent Analyses Table -->
+          <div class="recent-analyses-section">
+            <h2 class="section-heading">Recent Analyses</h2>
+            <div class="table-card">
+              <table class="dm-table">
+                <thead>
+                  <tr>
+                    <th class="th-num">#</th>
+                    <th>Dataset</th>
+                    <th>Type</th>
+                    <th>Analysis</th>
+                    <th>Date</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="homeRecentAnalysesBody">
+                  {% if history %}
+                    {% for item in history|slice:":5" %}
+                    <tr>
+                      <td class="td-num">{{ forloop.counter }}</td>
+                      <td style="font-weight: 500;">{{ item.dataset_name }}</td>
+                      <td><span class="type-pill">{{ item.dataset_type }}</span></td>
+                      <td>{{ item.analysis_type }}</td>
+                      <td>{{ item.created_at|date:"d M Y" }}</td>
+                      <td style="text-align: right;">
+                        <button class="btn-view-outline" onclick="navigateTo('insights')">View</button>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td class="td-num">1</td>
+                      <td style="font-weight: 500;">sales_data.csv</td>
+                      <td><span class="type-pill">CSV</span></td>
+                      <td>Sales Trend Analysis</td>
+                      <td>28 Jun 2026</td>
+                      <td style="text-align: right;">
+                        <button class="btn-view-outline" onclick="navigateTo('insights')">View</button>
+                      </td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- VIEW B: DATASET UPLOAD INTERFACE (FIGURE 5.7) -->
+        <!-- ================================================================= -->
+        <section id="view-upload" class="page-view {% if active_section == 'upload' %}active{% endif %}">
+          <div class="page-header">
+            <h1 class="page-title">Upload Dataset</h1>
+            <p class="page-subtitle">Upload your dataset in CSV or Excel format for analysis.</p>
+          </div>
+
+          <div class="upload-card-container">
+            <!-- Drag and Drop Dropzone -->
+            <div class="dropzone-box" id="uploadDropzone">
+              <input type="file" id="datasetFileInput" style="display: none;" accept=".csv, .xlsx, .xls">
+              <div class="cloud-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                  <polyline points="12 12 12 16 12 12"/>
+                  <polyline points="9 13 12 10 15 13"/>
+                </svg>
+              </div>
+              <p class="dropzone-prompt">Drag and drop your file here</p>
+              <span class="dropzone-or">or</span>
+              <button type="button" class="btn-choose-file" id="btnChooseFile">Choose File</button>
+              <p class="dropzone-hints">Supported formats: .csv, .xlsx, .xls &nbsp;|&nbsp; Maximum size: 50 MB</p>
+            </div>
+
+            <!-- File Selected Preview Box (Matches Figure 5.7) -->
+            <div class="file-selected-box" id="fileSelectedBox" style="display: flex;">
+              <div class="file-info-group">
+                <div class="file-format-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                    <path d="M14 3v5h5" fill="#15803d"/>
+                    <text x="7" y="18" fill="#ffffff" font-size="6" font-weight="bold">CSV</text>
+                  </svg>
+                </div>
+                <div class="file-meta-details">
+                  <span class="file-name-title" id="previewFileName">sales_data.csv</span>
+                  <span class="file-subtext" id="previewFileDetails">245 KB • CSV</span>
+                </div>
+              </div>
+              <div class="file-check-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Upload Alerts -->
+            <div id="uploadAlertBox" class="upload-status-alert"></div>
+
+            <!-- Upload & Analyze Button -->
+            <div class="upload-actions-bar">
+              <button type="button" class="btn-primary-action" id="btnUploadAnalyze">
+                Upload & Analyze
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- VIEW C: DATA INSIGHTS & VISUALIZATION (FIGURE 5.8) -->
+        <!-- ================================================================= -->
+        <section id="view-insights" class="page-view {% if active_section == 'insights' %}active{% endif %}">
+          <div class="insights-controls-bar">
+            <div class="page-header" style="margin-bottom: 0;">
+              <h1 class="page-title">Data Insights</h1>
+              <p class="page-subtitle">Key findings and visualizations generated from your dataset.</p>
+            </div>
+            {% if datasets %}
+            <div class="dataset-select-wrapper">
+              <label class="dataset-select-label" for="datasetPicker">Dataset:</label>
+              <select id="datasetPicker" class="dataset-dropdown" onchange="loadInsightsData(this.value)">
+                {% for d in datasets %}
+                <option value="{{ d.id }}" {% if forloop.first %}selected{% endif %}>{{ d.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Three Summary Cards -->
+          <div class="kpi-cards-grid">
+            <!-- 1. Total Sales -->
+            <div class="kpi-card">
+              <div class="kpi-icon-badge badge-kpi-purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10"/>
+                  <line x1="12" y1="20" x2="12" y2="4"/>
+                  <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-label">Total Sales</span>
+                <span class="kpi-value" id="kpiTotalSales">₹ 22,40,000</span>
+              </div>
+            </div>
+
+            <!-- 2. Growth -->
+            <div class="kpi-card">
+              <div class="kpi-icon-badge badge-kpi-green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="7 17 17 7"/>
+                  <polyline points="7 7 17 7 17 17"/>
+                </svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-label">Growth</span>
+                <span class="kpi-value" id="kpiGrowth">27.6 %</span>
+              </div>
+            </div>
+
+            <!-- 3. Best Category -->
+            <div class="kpi-card">
+              <div class="kpi-icon-badge badge-kpi-amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                  <line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-label">Best Category</span>
+                <span class="kpi-value" id="kpiBestCategory">Electronics</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Two Charts Grid (Figure 5.8) -->
+          <div class="charts-grid-2col">
+            <!-- Left: Sales by Category Doughnut Chart -->
+            <div class="chart-card">
+              <h2 class="chart-card-title">Sales by Category</h2>
+              <div class="doughnut-layout">
+                <div class="doughnut-canvas-wrapper">
+                  <canvas id="categoryDoughnutChart"></canvas>
+                  <div class="doughnut-center-label">
+                    <div class="center-val-big" id="doughnutCenterVal">₹ 22.4 L</div>
+                    <div class="center-val-sub">Total Sales</div>
+                  </div>
+                </div>
+                <div class="doughnut-legend-list" id="doughnutLegendList">
+                  <div class="legend-item"><span class="legend-dot" style="background-color: #3b82f6;"></span><span>Electronics (42%)</span></div>
+                  <div class="legend-item"><span class="legend-dot" style="background-color: #10b981;"></span><span>Clothing (24%)</span></div>
+                  <div class="legend-item"><span class="legend-dot" style="background-color: #f59e0b;"></span><span>Groceries (18%)</span></div>
+                  <div class="legend-item"><span class="legend-dot" style="background-color: #8b5cf6;"></span><span>Others (16%)</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Top 5 Products Bar Chart -->
+            <div class="chart-card">
+              <h2 class="chart-card-title">Top 5 Products</h2>
+              <div class="bar-chart-wrapper">
+                <canvas id="topProductsBarChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- VIEW D: ASK WITH AI (FIGURE 5.9) -->
+        <!-- ================================================================= -->
+        <section id="view-ask" class="page-view {% if active_section == 'ask' %}active{% endif %}">
+          <div class="page-header">
+            <h1 class="page-title">Ask with AI</h1>
+            <p class="page-subtitle">Ask any question about your dataset and get an AI-powered analysis.</p>
+          </div>
+
+          <div class="chat-card-container">
+            <!-- Messages Scroll Area -->
+            <div class="chat-messages-area" id="chatMessagesArea">
+              <!-- Default Illustration Message (Matching Figure 5.9) -->
+              <div class="chat-row-user">
+                <div class="bubble-user">
+                  What is the monthly sales trend and show a chart?
+                </div>
+                <div class="user-avatar-tiny">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- AI Response with Embedded Chart (Figure 5.9) -->
+              <div class="chat-row-ai">
+                <div class="ai-avatar-tiny">
+                  <div class="brand-bar" style="height: 10px; width: 3px; background: #2563eb; margin-right: 2px; display: inline-block;"></div>
+                  <div class="brand-bar" style="height: 15px; width: 3px; background: #2563eb; margin-right: 2px; display: inline-block;"></div>
+                  <div class="brand-bar" style="height: 20px; width: 3px; background: #2563eb; display: inline-block;"></div>
+                </div>
+                <div class="ai-message-body">
+                  <div class="ai-text-para">
+                    The monthly sales trend shows a consistent increase, with the highest sales in May (₹ 5,42,000). The overall trend indicates a 27.6% growth from January to May.
+                  </div>
+                  <div class="ai-embedded-chart-card">
+                    <div class="chart-inner-title">Monthly Sales Trend</div>
+                    <div class="ai-chart-canvas-box">
+                      <canvas id="monthlyTrendChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chat Input Bar -->
+            <form id="chatForm" class="chat-input-bar">
+              <input type="text" id="chatInput" class="chat-input-field" placeholder="Ask a question about your data..." autocomplete="off">
+              <button type="submit" class="btn-chat-send" title="Send question">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- VIEW E: DATASETS MANAGEMENT (Additional Page) -->
+        <!-- ================================================================= -->
+        <section id="view-datasets" class="page-view {% if active_section == 'datasets' %}active{% endif %}">
+          <div class="datasets-header-actions">
+            <div class="page-header" style="margin-bottom: 0;">
+              <h1 class="page-title">Datasets</h1>
+              <p class="page-subtitle">Manage, view, and inspect all uploaded datasets.</p>
+            </div>
+            <button class="btn-primary-action" onclick="navigateTo('upload')">
+              + Upload New Dataset
+            </button>
+          </div>
+
+          <div class="table-card">
+            <table class="dm-table">
+              <thead>
+                <tr>
+                  <th class="th-num">#</th>
+                  <th>Dataset Name</th>
+                  <th>Type</th>
+                  <th>Rows</th>
+                  <th>Columns</th>
+                  <th>Uploaded On</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="datasetsTableBody">
+                {% if datasets %}
+                  {% for d in datasets %}
+                  <tr>
+                    <td class="td-num">{{ forloop.counter }}</td>
+                    <td style="font-weight: 600;">{{ d.name }}</td>
+                    <td><span class="type-pill">{{ d.source_type|upper }}</span></td>
+                    <td>{{ d.row_count }}</td>
+                    <td>{{ d.column_count }}</td>
+                    <td>{{ d.created_at|date:"d M Y" }}</td>
+                    <td style="text-align: right;">
+                      <button class="btn-view-outline" onclick="previewDataset({{ d.id }}, '{{ d.name|escapejs }}')">Preview</button>
+                      <button class="btn-view-outline" style="margin-left: 6px;" onclick="selectDatasetForInsights({{ d.id }})">Insights</button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="7" style="text-align: center; padding: 30px; color: #64748b;">
+                      No datasets found. <a href="#" onclick="navigateTo('upload'); return false;" style="color: #2563eb;">Upload your first dataset</a>.
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- VIEW F: SQL QUERY (Additional Page) -->
+        <!-- ================================================================= -->
+        <section id="view-sql" class="page-view {% if active_section == 'sql' %}active{% endif %}">
+          <div class="page-header">
+            <h1 class="page-title">SQL Query</h1>
+            <p class="page-subtitle">Convert natural language to SQL and run queries on your dataset.</p>
+          </div>
+
+          <div class="sql-query-container">
+            <!-- Natural Language to SQL -->
+            <div class="sql-nl-bar">
+              <input type="text" id="sqlNlInput" class="sql-nl-input" placeholder="Ask in natural language e.g. 'Show total revenue grouped by category'...">
+              <button type="button" class="btn-secondary-action" id="btnNlToSql">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+                Generate SQL
+              </button>
+            </div>
+
+            <!-- SQL Query Editor -->
+            <div class="sql-editor-card">
+              <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 8px;">
+                SQL Query (Table name: <code>dataset</code>)
+              </label>
+              <textarea id="sqlEditorArea" class="sql-textarea" spellcheck="false">SELECT category, SUM(quantity * price) AS total_sales FROM dataset GROUP BY category ORDER BY total_sales DESC;</textarea>
+              <div class="sql-actions-bar">
+                <button type="button" class="btn-primary-action" id="btnRunSqlQuery">
+                  Run Query
+                </button>
+              </div>
+            </div>
+
+            <!-- SQL Results Card -->
+            <div class="table-card" id="sqlResultsBox">
+              <div style="padding: 24px; text-align: center; color: #64748b; font-size: 13.5px;">
+                Click "Run Query" or generate an SQL query from natural language to view results.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- VIEW G: ANALYSIS HISTORY (Additional Page) -->
+        <!-- ================================================================= -->
+        <section id="view-history" class="page-view {% if active_section == 'history' %}active{% endif %}">
+          <div class="page-header">
+            <h1 class="page-title">Analysis History</h1>
+            <p class="page-subtitle">Display previous analyses, SQL executions, and AI interactions.</p>
+          </div>
+
+          <div class="table-card">
+            <table class="dm-table">
+              <thead>
+                <tr>
+                  <th class="th-num">#</th>
+                  <th>Dataset</th>
+                  <th>Type</th>
+                  <th>Analysis / Query</th>
+                  <th>Date</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                {% if history %}
+                  {% for item in history %}
+                  <tr>
+                    <td class="td-num">{{ forloop.counter }}</td>
+                    <td style="font-weight: 600;">{{ item.dataset_name }}</td>
+                    <td><span class="type-pill">{{ item.dataset_type }}</span></td>
+                    <td>{{ item.analysis_type }}</td>
+                    <td>{{ item.created_at|date:"d M Y" }}</td>
+                    <td style="text-align: right;">
+                      <button class="btn-view-outline" onclick="navigateTo('insights')">View</button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td class="td-num">1</td>
+                    <td style="font-weight: 600;">sales_data.csv</td>
+                    <td><span class="type-pill">CSV</span></td>
+                    <td>Sales Trend Analysis</td>
+                    <td>28 Jun 2026</td>
+                    <td style="text-align: right;">
+                      <button class="btn-view-outline" onclick="navigateTo('insights')">View</button>
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Data Preview Modal -->
+  <div class="modal-overlay" id="previewModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalDatasetTitle">Dataset Preview</h3>
+        <button class="modal-close-btn" onclick="closePreviewModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modalPreviewContent">
+        <!-- Records table populated via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Core DataMind Script -->
+  <script src="{% static 'frontend/js/datamind.js' %}"></script>
+</body>
+</html>
