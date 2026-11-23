@@ -11,13 +11,14 @@ load_dotenv(BASE_DIR / '.env')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-datamind-prod-fallback-secret-key-2026')
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1', 'testserver']
+ALLOWED_HOSTS = ['*', '.vercel.app', 'localhost', '127.0.0.1', 'testserver']
 
 DB_CREDENTIAL_ENCRYPTION_KEY = os.getenv(
-    'DB_CREDENTIAL_ENCRYPTION_KEY'
+    'DB_CREDENTIAL_ENCRYPTION_KEY',
+    'default-encryption-key-32-characters-long!!'
 )
 
 LOGIN_URL = '/admin/login/'
@@ -76,11 +77,16 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-if os.getenv('USE_SQLITE', 'False').lower() in ('true', '1') or (os.getenv('VERCEL') == '1' and not os.getenv('DB_HOST')) or not os.getenv('DB_NAME'):
+if os.getenv('USE_SQLITE', 'False').lower() in ('true', '1') or os.getenv('VERCEL') == '1' or not os.getenv('DB_NAME'):
+    if os.getenv('VERCEL') == '1':
+        db_file = Path('/tmp/db.sqlite3')
+    else:
+        db_file = BASE_DIR / 'db.sqlite3'
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': db_file,
         }
     }
 else:
