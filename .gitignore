@@ -15,6 +15,7 @@ __pycache__/
 
 # Database files
 *.sqlite3
+!backend/default_db.sqlite3
 *.db
 
 # Media & Uploads (leave placeholder)

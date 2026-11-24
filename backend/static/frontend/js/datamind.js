@@ -184,7 +184,8 @@ function performUploadAndAnalyze(file) {
         }, 800);
       } else {
         alertBox.className = 'upload-status-alert alert-error';
-        alertBox.textContent = body.error || 'Failed to upload dataset.';
+        const errMsg = body.error || body.detail || (body.file ? (Array.isArray(body.file) ? body.file.join(' ') : body.file) : null) || 'Failed to upload dataset.';
+        alertBox.textContent = errMsg;
         alertBox.style.display = 'block';
       }
     })
@@ -608,7 +609,18 @@ function renderAiChart(canvasId, results) {
   const cols = results.chart?.columns || Object.keys(data[0] || {});
 
   // Case 1: Wide single-row multi-column aggregate (e.g. missing values or multiple metrics across columns)
-  if (data.length === 1 && cols.length > 1 && !('column' in data[0] && 'value' in data[0])) {
+  // ONLY use column names as labels if ALL values in the row are numeric or numeric strings (e.g. { total_revenue: 50000, total_profit: 20000 })
+  // If the row contains any non-numeric string (e.g. { category: "Python Foundations", total_certificates: 39 }), it is a categorical key-value record, NOT a wide aggregate!
+  const isWideMultiMetricRow = data.length === 1 && cols.length > 1 &&
+    !('column' in data[0] && 'value' in data[0]) &&
+    cols.every(c => {
+      const val = data[0][c];
+      if (val === null || val === undefined || val === '') return true;
+      return typeof val === 'number' || (typeof val === 'string' && val.trim() !== '' && !isNaN(Number(val)));
+    }) &&
+    !cols.some(c => typeof data[0][c] === 'string' && isNaN(Number(data[0][c])));
+
+  if (isWideMultiMetricRow) {
     const row = data[0];
     labels = cols.map(c => c.replace(/^missing_/i, '').replace(/_/g, ' '));
     values = cols.map(c => {
@@ -617,19 +629,18 @@ function renderAiChart(canvasId, results) {
     });
     datasetLabel = 'Observations';
   } else {
-    // Case 2: Standard long-form records
-    let labelCol = cols[0];
-    let valCol = cols.length > 1 ? cols[1] : cols[0];
+    // Case 2: Standard records (categorical label + numeric value)
+    // Dynamic detection: find the string/categorical column for labels, and numeric column for values
+    let labelCol = cols.find(c => {
+      const v = data[0][c];
+      return typeof v === 'string' && isNaN(Number(v));
+    }) || cols[0];
 
-    // Auto-detect label vs value columns if reversed
-    if (cols.length >= 2) {
-      const firstRow = data[0];
-      if (typeof firstRow[labelCol] === 'number' && typeof firstRow[valCol] !== 'number') {
-        const temp = labelCol;
-        labelCol = valCol;
-        valCol = temp;
-      }
-    }
+    let valCol = cols.find(c => {
+      if (c === labelCol) return false;
+      const v = data[0][c];
+      return typeof v === 'number' || (typeof v === 'string' && v.trim() !== '' && !isNaN(Number(v)));
+    }) || (cols.length > 1 ? (cols[0] === labelCol ? cols[1] : cols[0]) : cols[0]);
 
     labels = data.map(d => {
       const raw = d[labelCol];

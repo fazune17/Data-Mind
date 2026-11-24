@@ -10,16 +10,16 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 class DemoAutoAuthentication(BaseAuthentication):
     def authenticate(self, request):
         User = get_user_model()
-        user = User.objects.first()
-        if not user:
-            try:
+        try:
+            user = User.objects.first()
+            if not user:
                 user = User.objects.create_user(
                     username='fazun',
                     email='fazun@datamind.ai',
                     password='datamind_password_2026'
                 )
-            except Exception:
-                user = User.objects.first()
-        if user:
-            return (user, None)
+            if user:
+                return (user, None)
+        except Exception:
+            pass
         return None

@@ -54,8 +54,8 @@ SUPPORTED OPERATIONS:
      SELECT substr(Order_Date, 1, 7) AS month, SUM(Revenue_INR) AS monthly_sales FROM dataset GROUP BY month ORDER BY month
    - For average of a numeric column:
      SELECT AVG(quiz_percent) AS avg_score FROM dataset
-   - For top categories / products:
-     SELECT Category, SUM(Revenue_INR) AS total_revenue FROM dataset GROUP BY Category ORDER BY total_revenue DESC
+   - For top categories / products (e.g. highest selling, highest revenue, top 5):
+     SELECT Category, SUM(Revenue_INR) AS total_revenue FROM dataset GROUP BY Category ORDER BY total_revenue DESC LIMIT 5
 
 5. "multi_aggregate":
    {{"operation": "multi_aggregate", "metrics": [{{"column": "Revenue_INR", "aggregation": "sum", "label": "Total Revenue"}}, {{"column": "Profit_INR", "aggregation": "sum", "label": "Total Profit"}}]}}
