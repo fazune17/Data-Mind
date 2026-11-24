@@ -8,16 +8,13 @@
   ],
   "routes": [
     {
-      "src": "/static/(.*)",
-      "dest": "/backend/static/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "/api/index.py"
     }
   ],
   "env": {
     "DJANGO_SETTINGS_MODULE": "config.settings",
-    "USE_SQLITE": "True"
+    "USE_SQLITE": "True",
+    "VERCEL": "1"
   }
 }

@@ -21,9 +21,6 @@ __pycache__/
 backend/media/datasets/*
 !backend/media/datasets/DataMind_Stage2_Edge_Cases.xlsx
 
-# Static collected
-backend/staticfiles/
-
 # Logs & System
 *.log
 .DS_Store
@@ -34,3 +31,5 @@ Thumbs.db
 
 # Vercel output
 .vercel/
+
+.vercel
