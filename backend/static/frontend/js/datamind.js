@@ -1012,7 +1012,8 @@ function fallbackMarkdown(text) {
 // APPLICATION INITIALIZATION
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-  DataMind.csrfToken = getCookie('csrftoken') || '';
+  const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+  DataMind.csrfToken = (csrfInput ? csrfInput.value : '') || getCookie('csrftoken') || '';
 
   // 1. Setup Navigation
   document.querySelectorAll('.nav-link').forEach(link => {

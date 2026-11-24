@@ -157,7 +157,19 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+if os.getenv('VERCEL') == '1':
+    MEDIA_ROOT = Path('/tmp/media')
+    try:
+        os.makedirs(MEDIA_ROOT / 'datasets', exist_ok=True)
+        src_benchmark = BASE_DIR / 'media' / 'datasets' / 'DataMind_Stage2_Edge_Cases.xlsx'
+        dst_benchmark = MEDIA_ROOT / 'datasets' / 'DataMind_Stage2_Edge_Cases.xlsx'
+        if src_benchmark.exists() and not dst_benchmark.exists():
+            import shutil
+            shutil.copy(src_benchmark, dst_benchmark)
+    except Exception:
+        pass
+else:
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Email
@@ -170,7 +182,11 @@ MAILERS = {
 }
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'config.authentication.CsrfExemptSessionAuthentication',
+        'config.authentication.DemoAutoAuthentication',
+    ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.AllowAny',
     ],
 }

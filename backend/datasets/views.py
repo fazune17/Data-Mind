@@ -62,6 +62,12 @@ class DatasetUploadView(generics.GenericAPIView):
         dataset = None
 
         try:
+            import os
+            from django.conf import settings
+            try:
+                os.makedirs(settings.MEDIA_ROOT / 'datasets', exist_ok=True)
+            except Exception:
+                pass
 
             with transaction.atomic():
 
